@@ -1,3 +1,12 @@
 [submodule "bin"]
 	path = bin
 	url = https://github.com/koobh/QtBin
+[submodule "lib/RtAudioWrapper"]
+	path = lib/RtAudioWrapper
+	url = https://github.com/koobh/RtAudioWrapper
+[submodule "lib/WAV"]
+	path = lib/WAV
+	url = https://github.com/koobh/WAV
+[submodule "lib/verdigris"]
+	path = lib/verdigris
+	url = https://github.com/woboq/verdigris
