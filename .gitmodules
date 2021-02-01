@@ -10,3 +10,6 @@
 [submodule "lib/verdigris"]
 	path = lib/verdigris
 	url = https://github.com/woboq/verdigris
+[submodule "lib/STFT"]
+	path = lib/STFT
+	url = https://github.com/koobh/STFT
