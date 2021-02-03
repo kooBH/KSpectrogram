@@ -12,17 +12,28 @@ set(SRC_Qt_MOC)
 set(SRC_Qt)
 set(INCL)
 
+macro(display_elements
+	DISPLAY_MESSAGE
+	LIST_TO_DISPLAY)
+    message("[ ${DISPLAY_MESSAGE} ]")
+    foreach(_DISPLAY_ELEMENT ${LIST_TO_DISPLAY})
+	message(STATUS ${_DISPLAY_ELEMENT})
+    endforeach()
+endmacro()
+
 ## MOC(Meta Object Compiler) of QtFramework
 
 	## sources to be processed by MOC
 	list(APPEND SRC_Qt_MOC
 		src/KSpectrogram.h
 		src/KAnalysis.h
-		src/KSpecWidget.h
+		
 	)
 	
 	## sources without MetaObject 
 	list(APPEND SRC_Qt
+		src/KSpecWidget.h
+		
 		src/KSpectrogram.cpp
 		src/KAnalysis.cpp
 		src/KSpecWidget.cpp
@@ -31,23 +42,28 @@ set(INCL)
 		)
 	
 	foreach(i  ${SRC_Qt_MOC})
-		string(REPLACE "/" ";" parse_i ${i})
-		LIST(GET parse_i 1 second_element)
-		
+		string(REPLACE "/" ";" parse_i_1 ${i})
+		#message(${parse_i_1})
+		LIST(GET parse_i_1 1 parse_i_2)
+		#message(${parse_i_2})
+		string(REPLACE "." ";" parse_i_3 ${parse_i_2})
+		#message(${parse_i_3})
+		LIST(GET parse_i_3 0 fisrt_element)
+		#message(${fisrt_element})
 		if(MSVC)
 			execute_process(
-			COMMAND moc ../${i} -o ../tmp/moc_${second_element} -D pragma
+			COMMAND moc ../${i} -o ../tmp/moc_${fisrt_element}.cpp
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/bin  
 			
 			 )
 		endif()
 		
 		list(APPEND SRC_Qt
-			../tmp/moc_${second_element}
+			../tmp/moc_${fisrt_element}.cpp
 		)
 	endforeach()
 
-	list(APPEND COMPILE_OPTION -D_MOC_)
+	#list(APPEND COMPILE_OPTION -D_MOC_)
 ################
 
 if(NOT MSVC)
@@ -61,7 +77,7 @@ if(NOT MSVC)
 	)
 else()
 	list(APPEND COMPILE_OPTION
-		/openmp
+		#/openmp
 		# /MP - compiled in mult-process : faster build time
 		/MP
 	)
@@ -114,7 +130,7 @@ elseif(MSVC)
 	)
 endif()
 
-message(${LINKLIBS})
+display_elements(SRC "${SRC}")
 
 add_executable(${PROJECT_NAME} ${SRC})
 target_include_directories(${PROJECT_NAME}	PRIVATE	${INCL}  )
