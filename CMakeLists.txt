@@ -43,13 +43,9 @@ endmacro()
 	
 	foreach(i  ${SRC_Qt_MOC})
 		string(REPLACE "/" ";" parse_i_1 ${i})
-		#message(${parse_i_1})
 		LIST(GET parse_i_1 1 parse_i_2)
-		#message(${parse_i_2})
 		string(REPLACE "." ";" parse_i_3 ${parse_i_2})
-		#message(${parse_i_3})
 		LIST(GET parse_i_3 0 fisrt_element)
-		#message(${fisrt_element})
 		if(MSVC)
 			execute_process(
 			COMMAND moc ../${i} -o ../tmp/moc_${fisrt_element}.cpp
@@ -59,7 +55,7 @@ endmacro()
 		endif()
 		
 		list(APPEND SRC_Qt
-			../tmp/moc_${fisrt_element}.cpp
+			tmp/moc_${fisrt_element}.cpp
 		)
 	endforeach()
 
