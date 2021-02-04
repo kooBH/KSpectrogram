@@ -20,5 +20,8 @@ list(APPEND SRC_Qt
 list(APPEND SRC_Qt
 	${CMAKE_CURRENT_LIST_DIR}/src/LogSpec.h
 	${CMAKE_CURRENT_LIST_DIR}/src/ColorMap.h
-	)
+)
 	
+list(APPEND INCL
+	${CMAKE_CURRENT_LIST_DIR}/src
+)
