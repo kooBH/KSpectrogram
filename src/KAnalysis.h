@@ -50,10 +50,6 @@ class KAnalysis : public QWidget{
       QPushButton btn_stop;
       QPushButton btn_load;
       QPushButton btn_close;
-#ifndef NDEBUG
-      QPushButton btn_debug;
-      inline void func_debug();
-#endif
       QLabel label_scale;
       QComboBox combo_scale;
       QLabel label_window;
@@ -61,10 +57,17 @@ class KAnalysis : public QWidget{
       QLabel label_sample_rate;
       QComboBox combo_sample_rate;
 
-
     QScrollArea area_spec;
     QWidget widget_spec;
     QVBoxLayout layout_spec;
+
+    // TODO need to implement
+    QWidget widget_output;
+    QHBoxLayout layout_output;
+    QPushButton btn_AudioProbe;
+    QComboBox combobox_deivce;
+    QComboBox combobox_samplerate;
+    QComboBox combobox_channels;
 
     /* For Management of KSpectrogram Widgets */
     std::vector<KSpecWidget*> vector_spec;
@@ -135,9 +138,6 @@ class KAnalysis : public QWidget{
       void IndicateSignal(int pos);
       void SignalStartPlay();
       void SignalStopPlay();
-
-
-
 };
 
 

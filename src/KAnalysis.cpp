@@ -11,9 +11,6 @@
   btn_stop("stop"),
   btn_load("Load"),
   btn_close("Close All"),
-#ifndef NDEBUG
-  btn_debug("debug"),
-#endif
   label_scale("scale"),
   label_window("window"),
   label_sample_rate("sample rate"),
@@ -32,13 +29,20 @@
 
  resize(600, 400);
 
+ setStyleSheet("\
+			QWidget{background:rgb(245, 186, 184);border: 1px solid black;}\
+      QLabel{background:white;border: 1px solid black;}\
+      QPushButton{color:black;}\
+      QLabel:disabled{color:gray;}\
+      QPushButton:disabled{color:gray;}\
+      \
+      ");
 
  /* Default Values */
  frame_size = 512;
  shift_size = 128;
  sample_rate = 16000;
 
- 
  /*** Processor ***/
   logspec = new LogSpec(max_channels,frame_size);
   stft = new STFT(max_channels, frame_size, shift_size);
@@ -47,7 +51,6 @@
 
 /*** Button Section ***/
   layout_button.addWidget(&btn_play);
-
  
   QObject::connect(
       &btn_play, 
@@ -125,7 +128,6 @@
   layout_button.addWidget(&combo_window);
 
   /* sample_rate combobox */
-
   layout_button.addWidget(&label_sample_rate);
   combo_sample_rate.addItem("16000");
   combo_sample_rate.addItem("22500");
@@ -148,14 +150,6 @@
   );
 
   layout_button.addWidget(&combo_sample_rate);
-
-
-#ifndef NDEBUG
-  QObject::connect(&btn_debug, &QPushButton::clicked, [&]() 
-      {func_debug(); }
-      );
-  layout_button.addWidget(&btn_debug);
-#endif
 
   widget_button.setLayout(&layout_button);
   layout.addWidget(&widget_button,BorderLayout::North);
@@ -349,7 +343,7 @@ KAnalysis::~KAnalysis(){
               if (buf_data[j][i][k] < -250.0)buf_data[j][i][k] = -250.0;
               break;
             default:
-              //if (buf_data[j][i][k] < -0.0)buf_data[j][i][k] = -0.0;
+             // if (buf_data[j][i][k] < -0.0)buf_data[j][i][k] = -0.0;
               //if (buf_data[j][i][k] < -200.0)buf_data[j][i][k] = -200.0;
               break;
             }
@@ -717,13 +711,3 @@ KAnalysis::~KAnalysis(){
    }
  }
 
-
-#ifndef NDEBUG
- inline void KAnalysis::func_debug() {
-   for (int i = 0; i < vector_spec.size(); i++)
-     printf("%d : drawable %s\n",
-       vector_spec.at(i)->Get_id(),
-       vector_spec.at(i)->IsDrawable() ? "O" : "X"
-     );
-}
-#endif

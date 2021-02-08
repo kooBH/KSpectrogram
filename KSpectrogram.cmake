@@ -25,3 +25,4 @@ list(APPEND SRC_Qt
 list(APPEND INCL
 	${CMAKE_CURRENT_LIST_DIR}/src
 )
+

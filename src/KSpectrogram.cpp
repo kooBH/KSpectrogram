@@ -209,10 +209,10 @@ void KSpectrogram::SetArea(QPoint global, QPoint origin){
   int high = global.y() > origin.y()?global.y():origin.y();
   int low = global.y() > origin.y()?origin.y():global.y();
   
-  // 윈도우가 움직였을 수 도 있음.
+  // Window might be moved
   QPoint me = this->mapToGlobal( this->pos());
 
-  // this 가 영역에 포함되어 있는가?
+  // is 'this' included in the area?
   if(me.y() + height > low && me.y() < high)
     in_area = true;
   else
@@ -226,9 +226,9 @@ void KSpectrogram::SetArea(QPoint global, QPoint origin){
       */
 #endif
  
-  // 선택 영역에 속하지 않음.
+  // Not included in selected area.
   if(!in_area){
-    // 의미 없는 refresh 방지.
+    // Do not meaningless refresh
     if(is_fresh)return;
     Refresh();
     is_fresh = true;
