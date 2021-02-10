@@ -13,7 +13,7 @@
   btn_close("Close All"),
   label_scale("scale"),
   label_window("window"),
-  label_sample_rate("sample rate"),
+  label_sample_rate("samplerate[wav]"),
   width(0),
   height(0),
   num_spec(0),
@@ -30,7 +30,7 @@
  resize(600, 400);
 
  setStyleSheet("\
-			QWidget{background:rgb(245, 186, 184);border: 1px solid black;}\
+			QWidget{background:rgb(245, 186, 184);}\
       QLabel{background:white;border: 1px solid black;}\
       QPushButton{color:black;}\
       QLabel:disabled{color:gray;}\
@@ -167,6 +167,41 @@
   //area_spec.setStyleSheet(_BG_COLOR_3_);
   
   layout.addWidget(&area_spec,BorderLayout::Center);
+
+
+  /* Output Device Selection Widget */ {
+    widget_output.setLayout(&layout_output);
+    layout_output.addWidget(&btn_AudioProbe);
+    layout_output.addWidget(&label_device);
+    layout_output.addWidget(&combobox_device);
+    //layout_output.addWidget(&label_channels);
+    //layout_output.addWidget(&combobox_channels);
+    layout_output.addWidget(&label_samplerate);
+    layout_output.addWidget(&combobox_samplerate);
+    layout.addWidget(&widget_output, BorderLayout::South);
+
+    btn_AudioProbe.setText("AuidoProbe[Output]");
+    label_device.setText("device");
+    label_device.setFixedWidth(60);
+    combobox_device.setFixedWidth(300);
+    //label_channels.setText("channels");
+    //label_channels.setFixedWidth(60);
+    //combobox_channels.setFixedWidth(60);
+    label_samplerate.setText("samplerate[output]");
+    label_samplerate.setFixedWidth(130);
+
+    output_device = 0;
+    //output_channels = 1;
+    output_samplerate= 48000;
+
+
+    QObject::connect(&btn_AudioProbe, &QPushButton::pressed, this, &KAnalysis::SlotAudioProbe);
+    QObject::connect(&combobox_device, &QComboBox::currentIndexChanged, this,&KAnalysis::SlotChangeDevice);
+    QObject::connect(&combobox_samplerate, &QComboBox::currentIndexChanged, this,&KAnalysis::SlotChangeSamplerate);
+
+    SlotAudioProbe();
+  }
+
   setLayout(&layout);
 }
 
@@ -674,7 +709,7 @@ KAnalysis::~KAnalysis(){
    }
 
    if (channel_play != 0) {
-     sp = new RtOutput(1, channel_play, sample_rate, 48000, shift_size, frame_size);
+     sp = new RtOutput(output_device, channel_play, sample_rate, output_samplerate, shift_size, frame_size);
      switch (fmt_type) {
      case 3:
        sp->FullBufLoad(FLOAT_CAST(buffer_play), (long)(channel_play * size_play * shift_size));
@@ -710,4 +745,82 @@ KAnalysis::~KAnalysis(){
      CloseSpec(temp);
    }
  }
+
+ /* Perform AudioProbe and set 
+    widget_output as probed audio device
+ */
+ void KAnalysis::SlotAudioProbe() {
+
+   /* Clear */
+   combobox_device.clear();
+   //combobox_channels.clear();
+   combobox_samplerate.clear();
+   while (!vector_device.empty()){
+    device* tmp = vector_device.back();
+    tmp->samplerate.clear();
+    vector_device.pop_back();
+    delete tmp;
+ }
+
+   // From default RtAudio AudioProbe 
+   RtAudio audio;
+   unsigned int devices = audio.getDeviceCount();
+   RtAudio::DeviceInfo info;
+   for (unsigned int i = 0; i < devices; i++) {
+     info = audio.getDeviceInfo(i);
+     // only for output devices
+     if (info.probed == true &&  info.outputChannels > 0) {
+       device *temp;
+       temp = new device;
+       vector_device.push_back(temp);
+       temp->number = i;
+       temp->name = info.name;
+       //temp->channels = info.outputChannels;
+       for (auto sr : info.sampleRates)
+         temp->samplerate.push_back(sr);
+     }
+   }
+
+   for (auto dv : vector_device) {
+     combobox_device.addItem(QString::fromStdString(dv->name));
+   }
+
+   /* Default Device*/
+   SlotChangeDevice(0);
+}
+
+
+ void KAnalysis::SlotChangeDevice(int index) {
+   device* temp = vector_device.at(index);
+   output_device = temp->number;
+   //combobox_channels.clear();
+   combobox_samplerate.clear();
+
+   //for (int i = 1; i <= temp->channels; i++)
+   //  combobox_channels.addItem(QString::number(i));
+   int idx = 0;
+   bool default48k=false;
+   for (auto i : temp->samplerate) {
+     combobox_samplerate.addItem(QString::number(i));
+
+     /* Default Samplerate as 48000 */
+     if (i == 48000) {
+       output_samplerate = i;
+       combobox_samplerate.setCurrentIndex(idx);
+       default48k = true;
+     }
+     idx++;
+   }
+
+   if (!default48k) {
+     combobox_samplerate.setCurrentIndex(0);
+     output_samplerate = combobox_samplerate.itemText(0).toInt();
+   }
+}
+
+ void KAnalysis::SlotChangeSamplerate(int index) {
+   QString tmp = combobox_samplerate.itemText(index);
+   output_samplerate = tmp.toInt();
+ }
+
 

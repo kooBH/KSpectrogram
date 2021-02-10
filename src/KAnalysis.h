@@ -19,9 +19,11 @@
 #include <QMimeData>
 #include <QList>
 #include <QUrl>
-// use both
+
+/* STD */
 #include <string.h>
 #include <string>
+#include <vector>
 
 /* Audio Play*/
 #include "RtOutput.h"
@@ -35,6 +37,13 @@
 
 class KSpectrogram;
 class KSpecWidget;
+
+struct device {
+  int number;
+  std::string name;
+//  int channels;
+  std::vector<int> samplerate;
+};
 
 class KAnalysis : public QWidget{
     Q_OBJECT
@@ -61,13 +70,21 @@ class KAnalysis : public QWidget{
     QWidget widget_spec;
     QVBoxLayout layout_spec;
 
-    // TODO need to implement
+    /* Output device */
     QWidget widget_output;
     QHBoxLayout layout_output;
     QPushButton btn_AudioProbe;
-    QComboBox combobox_deivce;
+    QLabel label_device;
+    QComboBox combobox_device;
+    QLabel label_samplerate;
     QComboBox combobox_samplerate;
-    QComboBox combobox_channels;
+    //QLabel label_channels;
+    //QComboBox combobox_channels;
+
+    std::vector<device*> vector_device;
+    int output_device;
+    //int output_channels;
+    int output_samplerate;
 
     /* For Management of KSpectrogram Widgets */
     std::vector<KSpecWidget*> vector_spec;
@@ -133,6 +150,11 @@ class KAnalysis : public QWidget{
     void dropEvent(QDropEvent * event);
     void CloseSpec(KSpecWidget*);
     void CloseAll();
+
+    public slots:
+      void SlotAudioProbe();
+      void SlotChangeDevice(int);
+      void SlotChangeSamplerate(int);
 
    signals :
       void IndicateSignal(int pos);
