@@ -32,6 +32,7 @@
  setStyleSheet("\
 			QWidget{background:rgb(245, 186, 184);}\
       QLabel{background:white;border: 1px solid black;}\
+      QComboBox{background:white;}\
       QPushButton{color:black;}\
       QLabel:disabled{color:gray;}\
       QPushButton:disabled{color:gray;}\
