@@ -108,6 +108,7 @@ class KAnalysis : public QWidget{
 
     int scale;
     bool IsWavFile(char*);
+    bool isHide;
 
     // minimum gap for spectrogram
     const double gap_min = 10;
@@ -141,6 +142,7 @@ class KAnalysis : public QWidget{
 
     inline void Play();
 
+
     /* draw area of dragged rect */ 
     void SetArea(QPoint,QPoint);
     /* refresh all spectrograms */
@@ -151,6 +153,8 @@ class KAnalysis : public QWidget{
     void CloseSpec(KSpecWidget*);
     void CloseAll();
 
+    void ToggleHide();
+
     public slots:
       void SlotAudioProbe();
       void SlotChangeDevice(int);
@@ -160,6 +164,7 @@ class KAnalysis : public QWidget{
       void IndicateSignal(int pos);
       void SignalStartPlay();
       void SignalStopPlay();
+      void SignalSetSoundplayInfo(int, int);
 };
 
 

@@ -19,6 +19,7 @@
   num_spec(0),
   scale(1),
   playing(false),
+  isHide(false),
   id_max(0),
   buffer_play(nullptr)
   {
@@ -52,6 +53,7 @@
 
 /*** Button Section ***/
   layout_button.addWidget(&btn_play);
+
  
   QObject::connect(
       &btn_play, 
@@ -162,7 +164,6 @@
   
   layout_spec.setAlignment(Qt::AlignTop);
   widget_spec.setLayout(&layout_spec);
-//  widget_spec.setStyleSheet(_BG_COLOR_2_);
   
   area_spec.setWidget(&widget_spec);
   //area_spec.setStyleSheet(_BG_COLOR_3_);
@@ -817,11 +818,24 @@ KAnalysis::~KAnalysis(){
      combobox_samplerate.setCurrentIndex(0);
      output_samplerate = combobox_samplerate.itemText(0).toInt();
    }
+
+   emit(SignalSetSoundplayInfo(output_device, output_samplerate));
 }
 
  void KAnalysis::SlotChangeSamplerate(int index) {
    QString tmp = combobox_samplerate.itemText(index);
    output_samplerate = tmp.toInt();
+   emit(SignalSetSoundplayInfo(output_device, output_samplerate));
  }
 
+ void KAnalysis::ToggleHide() {
+   if (!isHide) {
+     printf("KAnalysis::ToggleHide::hide\n");
+     isHide = true;
+   }
+   else {
+     printf("KAnalysis::ToggleHide::show\n");
+     isHide = false;
+   }
+ }
 

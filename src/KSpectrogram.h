@@ -24,6 +24,7 @@ class KAnalysis;
 class KSpecWidget;
 
 //class KSpectrogram : public QWidget{
+
 class KSpectrogram : public QOpenGLWidget {
 	Q_OBJECT
 
