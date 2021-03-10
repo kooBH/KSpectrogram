@@ -29,18 +29,15 @@ inline LogSpec::~LogSpec(){}
 inline void log_spec(double* buf,int size){
    int re;
    int im;
-    for(int i=0;i<size;i+=2){
-      re = i;
-      im = i+1;
-      buf[re] = std::pow(buf[re] ,2);
-      buf[im] = std::pow(buf[im] ,2);
-      // left align logspec
-      buf[i/2] = buf[re] + buf[im];
-      // Convert to Decibels
-      buf[i/2] = 10*std::logl( buf[i/2] ) ;
-      
+   double tmp=0;
+   for (int i = 0; i < size; i += 2) {
+     re = i;
+     im = i + 1;
+     tmp = std::pow(buf[re], 2) + std::pow(buf[im], 2);
+     //printf("buf[%d] (%d %d) = %lf : %lf %lf\n", i / 2, re,im, tmp,buf[re],buf[im]);
+     buf[i / 2] = 10 * std::log10(tmp);
      //printf("INFO::log_spec::buf[%d] : %lf\n",i/2,buf[i/2]);
-    }
+   }
 }
 
 inline void LogSpec::Process(double**data){

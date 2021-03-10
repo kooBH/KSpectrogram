@@ -54,10 +54,21 @@ NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + New
      /* proper domain for tanh is range (-3,3) */
     //  printf("%d %lf\n",j,t);
      // t = (t +80 ) / 100 -2;
-      t = (((t - r_min) *  4) / (r_max- r_min)) -2;
+     //printf("A : %lf\n",t);
+
+    // r_max = 20
+   //  r_min = -100
+
+     if(t > r_max || t < r_min)
+      printf("A : %lf\n",t);
+
+     t = (((t - r_min) *  2) / (r_max- r_min)) -1;
+
+     if(t > 1 || t < -1)
+      printf("B : %lf\n",t);
      // t = (((t - r_min) * 6 ) / (r_max- r_min)) -3;
            /* tanh = (-1,1)*/
-      t = tanh(t);
+      //t = tanh(t);
      /* Jet Colormap 이 주로 쓰는 칼라맵 */
       // color.GetHotToCold(t,&r,&g,&b);
       ColorMap::GetJet(t,&r,&g,&b);

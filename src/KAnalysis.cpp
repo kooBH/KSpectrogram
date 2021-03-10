@@ -265,179 +265,144 @@ KAnalysis::~KAnalysis(){
 }
 
  void KAnalysis::LoadFile(const char* file_name){
+  if(!IsWavFile((char*)file_name))
+    printf("ERROR::Not a wav file.\n");
+
+  WAV wav_tmp;
+  wav_tmp.SetSizes(frame_size, shift_size);
+  std::cout << "KAnalysis::LoadFile(" << file_name << ")" << std::endl;
+
+  wav_tmp.OpenFile(file_name);
+  fmt_type = wav_tmp.GetFmtType();
+
+  int channels = wav_tmp.GetChannels();
+  int sample_rate = wav_tmp.GetSampleRate();
+  int length = wav_tmp.GetSize();
+
+  double* max_abs = new double[channels];
+  memset(max_abs, 0, sizeof(double) * channels);
+  double* max_val = new double[channels];
+  memset(max_val, 0, sizeof(double) * channels);
+  double* min_val = new double[channels];
+  memset(min_val, 0, sizeof(double) * channels);
+
+  /* Adjusting in case sample size doesn't be devided by sihft_size */
+  if (length % (channels * 2 * shift_size) != 0) {
+    length /= channels * 2 * shift_size;
+    length += 1;
+  }
+  else
+    length /= channels * 2 * shift_size;
+
 #ifndef NDEBUG
-      std::cout<<"INFO::load : "<<file_name<<"\n";
+  printf("NOTE::the number of samples : %d * shift_size\n", length);
 #endif
 
-    /* Is it wav file ?*/
-    if(IsWavFile((char*)file_name)) {
-      //if(wav_buf->GetIsOpen())wav_buf->Finish();
-      wav_buf = new WAV();
-      wav_buf->SetSizes(frame_size, shift_size);
-      std::cout << "KAnalysis::LoadFile("<<file_name << ")"<<std::endl;
+  /* Initialize Spectrogram Widgets */
+  for (int i = 0; i < channels; i++) {
+    KSpecWidget* temp_spec
+      = new KSpecWidget(this,
+        // fmt is fixed for short(1)
+        i + 1, length, frame_size + 2, shift_size, sample_rate, scale, 1, id_max++);
+    vector_spec.push_back(temp_spec);
+    num_spec++;
+  }
 
-      wav_buf->OpenFile(file_name);
-      fmt_type = wav_buf->GetFmtType();
-
-      //wav_buf->Print();
-      int channels = wav_buf->GetChannels();
-      int sample_rate = wav_buf->GetSampleRate();
-      int length = wav_buf->GetSize();
-
-      /* Adjusting in case sample size doesn't be devided by sihft_size */
-      if (length % (channels * 2 * shift_size) != 0) {
-        length /= channels * 2 * shift_size;
-        length += 1;
-      }
-      else
-        length /= channels * 2 * shift_size;
-#ifndef NDEBUG
-      printf("NOTE::the number of samples : %d * shift_size\n", length);
-#endif
-
-      /* Initialize Spectrogram Widgets */
-      for (int i = 0; i < channels; i++) {
-
-        KSpecWidget* temp_spec
-          = new KSpecWidget(this,
-            i + 1, length, frame_size + 2, shift_size, sample_rate, scale, fmt_type, id_max++);
-        vector_spec.push_back(temp_spec);
-        num_spec++;
-      }
-
-      /* Initialize buffers */
-      double** buf_raw;
-      buf_raw = new double* [channels];
-      for (int i = 0; i < channels; i++) {
-        buf_raw[i] = new double[frame_size];
-        memset(buf_raw[i], 0, (frame_size) * sizeof(double));
-      }
-      double*** buf_data;
-      buf_data = new double** [length];
-      for (int i = 0; i < length; i++) {
-        buf_data[i] = new double* [channels];
-        for (int j = 0; j < channels; j++) {
-          buf_data[i][j] = new double[frame_size + 2];
-          memset(buf_data[i][j], 0, (frame_size + 2) * sizeof(double));
-        }
-      }
-      double arr_max[max_channels];
-      double arr_min[max_channels];
-
-      /* Initialze buffer in WAV */
-      for (int i = 0; i < channels; i++) {
-        arr_max[i] = 0;
-        arr_min[i] = 0;
-      }
-
-      /* 2020.05.13 kbh
-       * keeping wav buffer of every spectrogram.
-     * takes too much memory. maybe create temp file for buffer?
-     */
-      for (int j = 0; j < length; j++) {
-        /* Create Spectrogram */
-        wav_buf->Convert2Array(buf_raw);
-
-
-        /* Create Buffer to Play */
-        {
-          switch (fmt_type) {
-          case 3:
-#pragma omp parallel for
-            for (int i = 0; i < channels; i++) {
-              memcpy(buf_data[j][i], buf_raw[i], sizeof(double) * frame_size);
-              /* give wav buffer for each specwidget */
-              float* temp_buf =
-                FLOAT_CAST(vector_spec.at(num_spec - channels + i)->Get_buffer_wav());
-              for (int k = 0; k < shift_size; k++)
-                temp_buf[j * shift_size + k] =
-                static_cast<float>(buf_raw[i][k]);
-            }
-            break;
-          default:
-#pragma omp parallel for
-            for (int i = 0; i < channels; i++) {
-              memcpy(buf_data[j][i], buf_raw[i], sizeof(double) * frame_size);
-              /* give wav buffer for each specwidget */
-              short* temp_buf =
-                SHORT_CAST(vector_spec.at(num_spec - channels + i)->Get_buffer_wav());
-              for (int k = 0; k < shift_size; k++)
-                temp_buf[j * shift_size + k] =
-                static_cast<short>(buf_raw[i][k]);
-            }
-            break;
-          }
-        }
-
-        stft->stft(buf_raw, buf_data[j], channels);
-        logspec->Process(buf_data[j], channels);
-
-        for (int i = 0; i < channels; i++) {
-          for (int k = 0; k < frame_size / 2 + 1; k++) {
-            /* Reference : Audacity Implementaion */
-            switch (fmt_type) {
-            case 3:
-              if (buf_data[j][i][k] < -250.0)buf_data[j][i][k] = -250.0;
-              break;
-            default:
-             // if (buf_data[j][i][k] < -0.0)buf_data[j][i][k] = -0.0;
-              //if (buf_data[j][i][k] < -200.0)buf_data[j][i][k] = -200.0;
-              break;
-            }
-            /* filter inf and -inf */
-            if  ((buf_data[j][i][k] == std::numeric_limits<double>::infinity())
-              | (-buf_data[j][i][k] == std::numeric_limits<double>::infinity()))
-              continue;
-            /* Get min max */
-            if (buf_data[j][i][k] > arr_max[i])
-              arr_max[i] = buf_data[j][i][k];
-            if (buf_data[j][i][k] < arr_min[i])
-              arr_min[i] = buf_data[j][i][k];
-          }
-        }
-      }
-
-      /* Exception for all values are 0.0  */
-    /*  for (int i = 0; i < channels; i++) {
-        if (arr_max[i] - arr_min[i] < gap_min)
-          arr_max[i] = arr_min[i] + gap_min;
-      }*/
-
-      for (int i = 0; i < channels; i++) {
-        vector_spec.at(num_spec - channels + i)->SetRange(arr_min[i], arr_max[i]);
-      //  printf("NOTE::Spectrogram[%d] min %lf | max %lf\n",i,arr_min[i],arr_max[i]);
-      }
-
-      /* Draw Spectrograms */
-      for (int i = 0; i < channels; i++) {
-        for (int j = 0; j < length; j++) {
-          vector_spec.at(num_spec - channels + i)->Update(buf_data[j][i]);
-        }
-      }
-
-      /* Display Spectrograms */
-      for (int i = 0; i < channels; i++) {
-        KSpecWidget* temp_spec = vector_spec.at(num_spec - channels + i);
-        temp_spec->Confirm();
-        layout_spec.addWidget((QWidget*)temp_spec);
-
-        /* Set width as max of specs */
-        if (width < temp_spec->GetSpecWidth())
-          width = temp_spec->GetSpecWidth();
-        height += temp_spec->GetSpecHeight() + 10;
-        widget_spec.resize(width, height);
-      }
-      wav_buf->Finish();
-      delete wav_buf;
-      for (int i = 0; i < channels; i++) {
-        delete[] buf_raw[i];
-        delete[] buf_data[i];
-      }
-      delete[] buf_data;
-      delete[] buf_raw;
+  /* Initialize buffers */
+  double** buf_raw;
+  buf_raw = new double* [channels];
+  for (int i = 0; i < channels; i++) {
+    buf_raw[i] = new double[frame_size];
+    memset(buf_raw[i], 0, (frame_size) * sizeof(double));
+  }
+  double*** buf_data;
+  buf_data = new double** [length];
+  for (int i = 0; i < length; i++) {
+    buf_data[i] = new double* [channels];
+    for (int j = 0; j < channels; j++) {
+      buf_data[i][j] = new double[frame_size + 2];
+      memset(buf_data[i][j], 0, (frame_size + 2) * sizeof(double));
     }
-    else
-      printf("ERROR::Not a wav file.\n");
+  }
+
+  /* save buffer */
+  for (int j = 0; j < length; j++) {
+    wav_tmp.Convert2Array(buf_raw);
+    /* give wav buffer for each specwidget */
+  #pragma omp parallel for
+    for (int i = 0; i < channels; i++) {
+      short* temp_buf =
+        SHORT_CAST(vector_spec.at(num_spec - channels + i)->Get_buffer_wav());
+      for (int k = 0; k < shift_size; k++)
+        temp_buf[j * shift_size + k] =
+        static_cast<short>(buf_raw[i][k]);
+    }
+    // Get min,max value for normalization
+    for (int i = 0; i < channels; i++)
+      for (int k = 0; k < shift_size; k++) {
+        max_abs[i] = std::max(max_abs[i], std::abs(buf_raw[i][k]));
+      }
+  }
+
+  // reset
+  wav_tmp.Rewind();
+  for (int i = 0; i < channels; i++)
+    memset(buf_raw[i], 0, (frame_size) * sizeof(double));
+
+  /* Create Spectrogram */
+  for (int j = 0; j < length; j++){
+    wav_tmp.Convert2Array(buf_raw);
+
+    /* Noramlization */
+#pragma omp parallel for
+    for (int k = 0; k < shift_size; k++) {
+      for (int i = 0; i < channels; i++) {
+        buf_raw[i][k] = buf_raw[i][k] * (32767.0 / max_abs[i]);
+      }
+    }
+
+    stft->stft(buf_raw, buf_data[j], channels);
+    logspec->Process(buf_data[j], channels);
+ 
+   // caxis
+    for (int i = 0; i < channels; i++) {
+      for (int k = 0; k < frame_size / 2 + 1; k++) {
+        if (buf_data[j][i][k] < -100) buf_data[j][i][k] = -100;
+        if (buf_data[j][i][k] > 20) buf_data[j][i][k] = 20;
+      }
+    }
+  }
+
+  for (int i = 0; i < channels; i++)
+    //vector_spec.at(num_spec - channels + i)->SetRange(min_val[i], max_val[i]);
+    vector_spec.at(num_spec - channels + i)->SetRange(-100, 20);
+
+  /* Set Spectrograms pixels */
+  for (int i = 0; i < channels; i++)
+    for (int j = 0; j < length; j++)
+      vector_spec.at(num_spec - channels + i)->Update(buf_data[j][i]);
+
+  /* Display Spectrograms */
+  for (int i = 0; i < channels; i++) {
+    KSpecWidget* temp_spec = vector_spec.at(num_spec - channels + i);
+    temp_spec->Confirm();
+    layout_spec.addWidget((QWidget*)temp_spec);
+
+    /* Set width as max of specs */
+    if (width < temp_spec->GetSpecWidth())
+      width = temp_spec->GetSpecWidth();
+    height += temp_spec->GetSpecHeight() + 10;
+    widget_spec.resize(width, height);
+  }
+  wav_tmp.Finish();
+  for (int i = 0; i < channels; i++) {
+    delete[] buf_raw[i];
+    delete[] buf_data[i];
+  }
+  delete[] buf_data;
+  delete[] buf_raw;
+  delete[] max_val;
+  delete[] min_val;
  }
 
  bool KAnalysis::IsWavFile(char* file_name) {

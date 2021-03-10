@@ -102,7 +102,6 @@ class KAnalysis : public QWidget{
     int shift_size;
     double** buffer;
 
-    WAV* wav_buf;
     STFT* stft;
     LogSpec* logspec;
 
