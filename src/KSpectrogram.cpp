@@ -59,13 +59,13 @@ NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + New
     // r_max = 20
    //  r_min = -100
 
-     if(t > r_max || t < r_min)
-      printf("A : %lf\n",t);
+    // if(t > r_max || t < r_min)
+     // printf("A : %lf\n",t);
 
      t = (((t - r_min) *  2) / (r_max- r_min)) -1;
 
-     if(t > 1 || t < -1)
-      printf("B : %lf\n",t);
+    // if(t > 1 || t < -1)
+     // printf("B : %lf\n",t);
      // t = (((t - r_min) * 6 ) / (r_max- r_min)) -3;
            /* tanh = (-1,1)*/
       //t = tanh(t);
@@ -91,7 +91,7 @@ void KSpectrogram::Confirm(){
 
 void KSpectrogram::Indicator(int pos){
   if(!in_area)return;
-  /* 선택된 영역위에 그림 */
+  /* Draw on selected area */
   flag_alt = true;
   QPainter paint;  
   paint.begin(&buf_alt);

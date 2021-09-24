@@ -23,6 +23,7 @@ endmacro()
 
 ## MOC(Meta Object Compiler) of QtFramework
 
+	file(MAKE_DIRECTORY tmp)
 	## sources to be processed by MOC
 	list(APPEND SRC_Qt_MOC
 		src/KSpectrogram.h
