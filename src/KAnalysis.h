@@ -6,6 +6,7 @@
 #include "QWidget.h"
 #include "BorderLayout.h"
 #include "QComboBox.h"
+#include <QTabWidget>
 
 #include <QFileDialog>
 #include <QScrollArea>
@@ -45,39 +46,46 @@ struct device {
   std::vector<int> samplerate;
 };
 
-class KAnalysis : public QWidget{
+class KAnalysis : public QTabWidget{
     Q_OBJECT
 
   private:
 
     int width,height;
-
-    BorderLayout layout;
-    QWidget widget_button;
-    QHBoxLayout layout_button;
-      QPushButton btn_play;
-      QPushButton btn_stop;
-      QPushButton btn_load;
-      QPushButton btn_close;
-      QLabel label_scale;
-      QComboBox combo_scale;
-      QLabel label_window;
-      QComboBox combo_window;
-      QLabel label_sample_rate;
-      QComboBox combo_sample_rate;
-
-    QScrollArea area_spec;
-    QWidget widget_spec;
-    QVBoxLayout layout_spec;
-
-    /* Output device */
-    QWidget widget_output;
-    QHBoxLayout layout_output;
-    QPushButton btn_AudioProbe;
-    QLabel label_device;
-    QComboBox combobox_device;
-    QLabel label_samplerate;
-    QComboBox combobox_samplerate;
+  
+   /* Play Tabl*/
+    QWidget widget_play;
+    BorderLayout layout_play;
+      QWidget widget_button;
+      QHBoxLayout layout_button;
+        QPushButton btn_play;
+        QPushButton btn_stop;
+        QPushButton btn_load;
+        QPushButton btn_close;
+      QScrollArea area_spec;
+      QWidget widget_spec;
+      QVBoxLayout layout_spec;
+    
+    /* Configuration Tab*/
+    QWidget widget_config;
+    QVBoxLayout layout_config;
+      /* Parameters */
+      QWidget widget_param;
+      QHBoxLayout layout_param;
+        QLabel label_scale;
+        QComboBox combo_scale;
+        QLabel label_window;
+        QComboBox combo_window;
+        QLabel label_sample_rate;
+        QComboBox combo_sample_rate;
+      /* Output device */
+      QWidget widget_output;
+      QHBoxLayout layout_output;
+        QPushButton btn_AudioProbe;
+        QLabel label_device;
+        QComboBox combobox_device;
+        QLabel label_samplerate;
+        QComboBox combobox_samplerate;
     //QLabel label_channels;
     //QComboBox combobox_channels;
 

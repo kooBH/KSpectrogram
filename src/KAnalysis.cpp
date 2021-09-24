@@ -53,7 +53,6 @@
 
 /*** Button Section ***/
   layout_button.addWidget(&btn_play);
-
  
   QObject::connect(
       &btn_play, 
@@ -81,81 +80,9 @@
   layout_button.addWidget(&btn_close);
   QObject::connect(&btn_close, &QPushButton::clicked, [&]() { CloseAll(); } );
 
-  layout_button.addWidget(&label_scale);
-
-  /* Scale ComboBox */
-
-  combo_scale.addItem("1");
-  combo_scale.addItem("2");
-  combo_scale.addItem("4");
-  combo_scale.addItem("8");
-
-  combo_scale.setCurrentIndex(0);
-  QObject::connect(&combo_scale, &QComboBox::currentTextChanged,
-                     [&](const QString &text) {
-                       scale = text.toInt();
-                     }
-  );
-
-  layout_button.addWidget(&combo_scale);
-  layout_button.addWidget(&label_window);
-
-  /* window ComboBox */
-  combo_window.addItem("128/512");
-  combo_window.addItem("256/1024");
-  combo_window.addItem("512/2048");
-
-  // https://doc.qt.io/qt-5/qcombobox.html#currentIndexChanged
-  QObject::connect(&combo_window, QOverload<int>::of(&QComboBox::currentIndexChanged),
-               [&](int index) {
-                   switch(index){
-                    case 0:
-                        shift_size = 128;
-                        frame_size = 512;
-                      break;
-                    case 1:
-                        shift_size = 256;
-                        frame_size = 1024;
-                      break;
-                    case 2:
-                        shift_size = 512;
-                        frame_size = 2048;
-                      break;
-                   }
-                  delete stft,logspec;
-                  stft = new STFT(max_channels, frame_size, shift_size);
-                  logspec = new LogSpec(max_channels,frame_size);
-               }
-  );
   
-  layout_button.addWidget(&combo_window);
-
-  /* sample_rate combobox */
-  layout_button.addWidget(&label_sample_rate);
-  combo_sample_rate.addItem("16000");
-  combo_sample_rate.addItem("22500");
-  combo_sample_rate.addItem("48000");
-  combo_sample_rate.addItem("96000");
-
-  QObject::connect(&combo_sample_rate, QOverload<int>::of(&QComboBox::currentIndexChanged),
-               [&](int index) {
-                   switch(index){
-                    case 0:sample_rate = 16000;
-                      break;
-                    case 1:sample_rate = 22500;
-                      break;
-                    case 2:sample_rate = 48000;
-                      break;
-                    case 3:sample_rate = 96000;
-                      break;
-                   }
-               }
-  );
-
-  layout_button.addWidget(&combo_sample_rate);
-
   widget_button.setLayout(&layout_button);
-  layout.addWidget(&widget_button,BorderLayout::North);
+  layout_play.addWidget(&widget_button,BorderLayout::North);
 
 /*** Spectrogram Section ***/
 
@@ -168,7 +95,84 @@
   area_spec.setWidget(&widget_spec);
   //area_spec.setStyleSheet(_BG_COLOR_3_);
   
-  layout.addWidget(&area_spec,BorderLayout::Center);
+  layout_play.addWidget(&area_spec,BorderLayout::Center);
+
+  /* Configuration Widget*/ {
+    layout_param.addWidget(&label_scale);
+
+    /* Scale ComboBox */
+
+    combo_scale.addItem("1");
+    combo_scale.addItem("2");
+    combo_scale.addItem("4");
+    combo_scale.addItem("8");
+
+    combo_scale.setCurrentIndex(0);
+    QObject::connect(&combo_scale, &QComboBox::currentTextChanged,
+      [&](const QString& text) {
+        scale = text.toInt();
+      }
+    );
+
+    layout_param.addWidget(&combo_scale);
+    layout_param.addWidget(&label_window);
+
+    /* window ComboBox */
+    combo_window.addItem("128/512");
+    combo_window.addItem("256/1024");
+    combo_window.addItem("512/2048");
+
+    // https://doc.qt.io/qt-5/qcombobox.html#currentIndexChanged
+    QObject::connect(&combo_window, QOverload<int>::of(&QComboBox::currentIndexChanged),
+      [&](int index) {
+        switch (index) {
+        case 0:
+          shift_size = 128;
+          frame_size = 512;
+          break;
+        case 1:
+          shift_size = 256;
+          frame_size = 1024;
+          break;
+        case 2:
+          shift_size = 512;
+          frame_size = 2048;
+          break;
+        }
+        delete stft, logspec;
+        stft = new STFT(max_channels, frame_size, shift_size);
+        logspec = new LogSpec(max_channels, frame_size);
+      }
+    );
+
+    layout_param.addWidget(&combo_window);
+
+    /* sample_rate combobox */
+    layout_param.addWidget(&label_sample_rate);
+    combo_sample_rate.addItem("16000");
+    combo_sample_rate.addItem("22500");
+    combo_sample_rate.addItem("48000");
+    combo_sample_rate.addItem("96000");
+
+    QObject::connect(&combo_sample_rate, QOverload<int>::of(&QComboBox::currentIndexChanged),
+      [&](int index) {
+        switch (index) {
+        case 0:sample_rate = 16000;
+          break;
+        case 1:sample_rate = 22500;
+          break;
+        case 2:sample_rate = 48000;
+          break;
+        case 3:sample_rate = 96000;
+          break;
+        }
+      }
+    );
+
+    layout_param.addWidget(&combo_sample_rate);
+    widget_param.setLayout(&layout_param);
+    layout_config.addWidget(&widget_param);
+  }
 
 
   /* Output Device Selection Widget */ {
@@ -180,7 +184,7 @@
     //layout_output.addWidget(&combobox_channels);
     layout_output.addWidget(&label_samplerate);
     layout_output.addWidget(&combobox_samplerate);
-    layout.addWidget(&widget_output, BorderLayout::South);
+    layout_config.addWidget(&widget_output);
 
     btn_AudioProbe.setText("AuidoProbe[Output]");
     label_device.setText("device");
@@ -203,8 +207,12 @@
 
     SlotAudioProbe();
   }
-
-  setLayout(&layout);
+  layout_config.addStretch();
+  
+  widget_play.setLayout(&layout_play);
+  widget_config.setLayout(&layout_config);
+  this->addTab(&widget_play, "Play");
+  this->addTab(&widget_config, "Config");
 }
 
 KAnalysis::~KAnalysis(){
@@ -218,7 +226,11 @@ KAnalysis::~KAnalysis(){
         break;
     }
   }
-  if(t_indicate)t_indicate->join();
+  if(t_indicate && t_indicate->joinable())
+    t_indicate->join();
+  if (t_indicate) {
+    delete t_indicate;
+  }
   delete stft,logspec,sp;
 }
 
@@ -719,8 +731,10 @@ KAnalysis::~KAnalysis(){
  void KAnalysis::SlotAudioProbe() {
 
    /* Clear */
+   //printf("combobox count : %d, combobox index : %d\n", combobox_device.count(),combobox_device.currentIndex());
+
    combobox_device.clear();
-   //combobox_channels.clear();
+     //combobox_channels.clear();
    combobox_samplerate.clear();
    while (!vector_device.empty()){
     device* tmp = vector_device.back();
@@ -758,6 +772,9 @@ KAnalysis::~KAnalysis(){
 
 
  void KAnalysis::SlotChangeDevice(int index) {
+  // printf("Slot Change Device : %d\n", index);
+   if (index < 0)
+     return;
    device* temp = vector_device.at(index);
    output_device = temp->number;
    //combobox_channels.clear();
