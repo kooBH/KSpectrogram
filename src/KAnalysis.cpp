@@ -349,11 +349,14 @@ KAnalysis::~KAnalysis(){
   for (int i = 0; i < channels; i++)
     memset(buf_raw[i], 0, (frame_size) * sizeof(double));
 
+    int caxis_max = 20;
+    int caxis_min = -100;
   /* Create Spectrogram */
   for (int j = 0; j < length; j++){
     wav_tmp.Convert2Array(buf_raw);
 
     /* Noramlization */
+
 #pragma omp parallel for
     for (int k = 0; k < shift_size; k++) {
       for (int i = 0; i < channels; i++) {
@@ -361,21 +364,22 @@ KAnalysis::~KAnalysis(){
       }
     }
 
-    stft->stft(buf_raw, buf_data[j], channels);
+  stft->stft(buf_raw, buf_data[j], channels);
     logspec->Process(buf_data[j], channels);
  
+
    // caxis
     for (int i = 0; i < channels; i++) {
       for (int k = 0; k < frame_size / 2 + 1; k++) {
-        if (buf_data[j][i][k] < -100) buf_data[j][i][k] = -100;
-        if (buf_data[j][i][k] > 20) buf_data[j][i][k] = 20;
+        if (buf_data[j][i][k] < caxis_min) buf_data[j][i][k] = caxis_min;
+        if (buf_data[j][i][k] > caxis_max) buf_data[j][i][k] = caxis_max;
       }
     }
   }
 
   for (int i = 0; i < channels; i++)
     //vector_spec.at(num_spec - channels + i)->SetRange(min_val[i], max_val[i]);
-    vector_spec.at(num_spec - channels + i)->SetRange(-100, 20);
+    vector_spec.at(num_spec - channels + i)->SetRange(caxis_min, caxis_max);
 
   /* Set Spectrograms pixels */
   for (int i = 0; i < channels; i++)
