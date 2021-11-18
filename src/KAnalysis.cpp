@@ -144,7 +144,6 @@
         logspec = new LogSpec(max_channels, frame_size);
       }
     );
-
     layout_param.addWidget(&combo_window);
 
     /* sample_rate combobox */
@@ -419,6 +418,8 @@ KAnalysis::~KAnalysis(){
   delete[] buf_raw;
   delete[] max_val;
   delete[] min_val;
+
+  update();
  }
 
  bool KAnalysis::IsWavFile(char* file_name) {
