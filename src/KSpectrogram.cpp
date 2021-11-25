@@ -74,7 +74,15 @@ NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + New
       ColorMap::GetJet(t,&r,&g,&b);
 
  //     printf("%d %d %d\n", r,g,b);
-        
+
+      // Exeception
+      if (r > 255)r = 255;
+      if (g > 255)r = 255;
+      if (b > 255)r = 255;
+
+      if (r < 0)r = 0;
+      if (g < 0)r = 0;
+      if (b < 0)r = 0;
       img->setPixelColor(idx,height-1-j,QColor(r,g,b,255));
     }
     idx++;
